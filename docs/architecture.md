@@ -30,4 +30,6 @@ The frontend owns customer, vendor, and admin routes in one app for now. The bac
 - Keep Spring Boot as a modular monolith until the product needs service boundaries.
 - Use Flyway for database migrations.
 - Use DTOs for API requests and responses instead of exposing persistence entities.
+- Use backend-managed staff/admin authentication for the MVP, with customer QR ordering kept login-free.
+- Use a shared API error response shape for validation and runtime failures.
 - Follow the conventions in `docs/api-conventions.md`.

@@ -24,6 +24,37 @@ Shared code should only be introduced when at least two modules need the same be
 - Validate request DTOs with Jakarta Bean Validation where practical.
 - Return customer-safe DTOs for QR menu and order flows.
 
+## Authentication Direction
+
+- Use backend-managed authentication for platform admin, vendor owner/admin, and vendor staff users.
+- Use role-based access with these MVP roles: `PLATFORM_ADMIN`, `VENDOR_ADMIN`, and `VENDOR_STAFF`.
+- Keep customer QR ordering login-free for the MVP; QR access is scoped by resolving an active QR code to a vendor, branch, and table.
+- Defer third-party OAuth, social login, and customer accounts until a later roadmap phase requires them.
+
+## Error Responses
+
+API errors should use a consistent JSON shape:
+
+```json
+{
+  "timestamp": "2026-04-28T10:00:00Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Request validation failed",
+  "path": "/api/example",
+  "fieldErrors": [
+    {
+      "field": "name",
+      "message": "must not be blank"
+    }
+  ]
+}
+```
+
+- Use `fieldErrors` for request validation failures.
+- Return an empty `fieldErrors` array when the error is not field-specific.
+- Do not return stack traces or persistence details to API clients.
+
 ## Persistence and Migrations
 
 - Manage PostgreSQL schema changes with Flyway migrations in `backend/src/main/resources/db/migration`.
@@ -48,3 +79,11 @@ The React app owns customer, vendor, admin, and login surfaces:
 - `/login`: authenticated staff and admin access.
 
 Frontend code should call backend APIs through the shared API client configuration based on `VITE_API_BASE_URL`.
+
+## Frontend States
+
+- Customer QR screens should show clear states for loading the QR menu, invalid/inactive QR codes, empty menus, failed order submission, and successful order submission.
+- Vendor screens should show loading states, empty order/menu states, and API errors without losing the current tenant context.
+- Admin screens should show loading, empty vendor lists, and setup errors with enough context for platform operations.
+- Login should distinguish invalid credentials from unavailable backend/network failures.
+- Reusable UI components should be introduced only after the same state pattern appears in multiple screens.
