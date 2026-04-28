@@ -11,15 +11,18 @@ The frontend owns customer, vendor, and admin routes in one app for now. The bac
 ## Current Backend Modules
 
 - `health`: basic service health endpoint.
+- `auth`: package boundary for users, roles, and access control.
+- `vendor`: package boundary for vendor tenants, branches, tables, and onboarding.
+- `menu`: package boundary for menus, categories, dishes, variants, and add-ons.
+- `qrcode`: package boundary for QR codes mapped to vendors, branches, and tables.
+- `order`: package boundary for order creation and lifecycle management.
+- `payment`: package boundary for manual payment tracking and future payment integrations.
 
-## Planned Backend Modules
+## Planned Feature Work
 
-- `auth`: users, roles, and access control.
-- `vendor`: vendor and branch management.
-- `menu`: menus, categories, dishes, variants, and add-ons.
-- `qrcode`: QR codes mapped to vendors, branches, and tables.
-- `order`: order creation and lifecycle management.
-- `payment`: payment records, providers, and webhooks.
+- Add implementation classes inside the package boundaries as each roadmap phase is built.
+- Introduce vendor-level tenant tables before adding menu, QR, order, or payment records.
+- Keep online payment providers behind backend APIs and add them after the manual payment MVP.
 
 ## Key Direction
 
@@ -27,3 +30,4 @@ The frontend owns customer, vendor, and admin routes in one app for now. The bac
 - Keep Spring Boot as a modular monolith until the product needs service boundaries.
 - Use Flyway for database migrations.
 - Use DTOs for API requests and responses instead of exposing persistence entities.
+- Follow the conventions in `docs/api-conventions.md`.

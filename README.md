@@ -11,6 +11,11 @@ docs/      Project notes
 infra/     Future infrastructure files
 ```
 
+## Planning Docs
+
+- `docs/product-roadmap.md`: product and engineering phases for the QR ordering platform.
+- `docs/api-conventions.md`: backend module, API, migration, tenancy, and route conventions.
+
 ## Prerequisites
 
 - Node.js and npm
