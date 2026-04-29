@@ -15,3 +15,12 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    session:
+      timeout: 8h
+
+servu:
+  admin:
+    email: ${SERVU_ADMIN_EMAIL:}
+    password: ${SERVU_ADMIN_PASSWORD:}
+    display-name: ${SERVU_ADMIN_DISPLAY_NAME:Platform Admin}

@@ -27,7 +27,10 @@ Shared code should only be introduced when at least two modules need the same be
 ## Authentication Direction
 
 - Use backend-managed authentication for platform admin, vendor owner/admin, and vendor staff users.
+- Use server-side session cookie authentication for the browser app, with CSRF tokens required for unsafe requests.
 - Use role-based access with these MVP roles: `PLATFORM_ADMIN`, `VENDOR_ADMIN`, and `VENDOR_STAFF`.
+- Use `GET /api/auth/csrf`, `POST /api/auth/login`, `GET /api/auth/me`, and `POST /api/auth/logout` for staff/admin sessions.
+- Bootstrap the first platform admin from `SERVU_ADMIN_EMAIL`, `SERVU_ADMIN_PASSWORD`, and optional `SERVU_ADMIN_DISPLAY_NAME`.
 - Keep customer QR ordering login-free for the MVP; QR access is scoped by resolving an active QR code to a vendor, branch, and table.
 - Defer third-party OAuth, social login, and customer accounts until a later roadmap phase requires them.
 
