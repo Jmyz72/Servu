@@ -4,6 +4,8 @@ Servu is a multi-tenant QR food ordering platform for restaurants, cafes, and fo
 
 This roadmap combines product requirements and engineering phases. It is intentionally high level enough to guide implementation without locking exact API paths, database columns, or UI copy before each phase is designed in detail.
 
+The first MVP release candidate is after Phase 6, once customer QR ordering and vendor order operations are both complete.
+
 ## Product Direction
 
 ### Target Users
@@ -48,7 +50,7 @@ Establish the technical foundation needed to build the product safely and consis
 - Confirm project structure, local development workflow, and environment configuration.
 - Add initial Flyway migration structure if missing.
 - Define core domain boundaries for `auth`, `vendor`, `menu`, `qrcode`, `order`, and `payment`.
-- Decide authentication direction for platform admin, vendor owner/admin, and vendor staff.
+- Confirm that staff and admin authentication will be implemented in Phase 2.
 - Establish backend DTO, validation, error response, and controller conventions.
 - Establish frontend route and API client conventions.
 
@@ -89,7 +91,58 @@ Establish the technical foundation needed to build the product safely and consis
 - Weak module boundaries will make tenant isolation harder to enforce later.
 - Database migration discipline should start before domain tables are added.
 
-## Phase 2: Tenant & Vendor Management
+## Phase 2: Authentication Foundation
+
+### Goal
+
+Establish backend-managed staff and admin authentication before tenant and vendor management work begins.
+
+### In Scope
+
+- Platform admin, vendor owner/admin, and vendor staff login.
+- MVP roles: `PLATFORM_ADMIN`, `VENDOR_ADMIN`, and `VENDOR_STAFF`.
+- Backend-managed session, token, or cookie mechanism.
+- Credential policy for MVP staff/admin users.
+- Protected admin and vendor routes.
+- Backend authorization conventions for authenticated APIs.
+
+### Out of Scope
+
+- Customer accounts or customer login.
+- Third-party OAuth or social login.
+- Fine-grained custom permissions beyond MVP roles.
+- Online payment authentication or provider account linking.
+
+### Backend Work
+
+- Add staff/admin user identity and role models.
+- Implement login, logout, and current-user APIs using DTOs.
+- Protect admin and vendor API conventions from unauthenticated access.
+- Make authenticated user role and vendor context available to later tenant-scoped APIs.
+- Keep customer QR access login-free.
+
+### Frontend Work
+
+- Build the login flow for staff and admin users.
+- Protect admin and vendor route areas from unauthenticated access.
+- Keep customer QR menu routes available without login.
+- Show clear login errors for invalid credentials and unavailable backend/network failures.
+
+### Acceptance Criteria
+
+- Staff and admin users can log in and log out.
+- Backend APIs can identify the authenticated user's role.
+- Vendor-scoped users expose vendor context where applicable.
+- Protected admin and vendor APIs reject unauthenticated access.
+- Customer QR menu access remains login-free.
+
+### Key Risks or Decisions
+
+- Session and credential choices affect frontend routing, API security, and local development.
+- Tenant isolation in later phases depends on reliable authenticated identity and vendor context.
+- MVP roles should stay simple until real workflows require finer permissions.
+
+## Phase 3: Tenant & Vendor Management
 
 ### Goal
 
@@ -140,7 +193,7 @@ Allow the platform to represent vendors, branches, tables, QR codes, and vendor 
 - QR code references should be opaque and rotatable.
 - Staff role names and permissions should stay minimal until real workflows require more detail.
 
-## Phase 3: Menu Management
+## Phase 4: Menu Management
 
 ### Goal
 
@@ -174,14 +227,14 @@ Allow vendor users to maintain menus that customers can browse from a QR code.
 
 - Add vendor menu management screens.
 - Add customer menu browsing screen using the QR route.
-- Support visible unavailable states without allowing unavailable items to be ordered.
+- Support visible unavailable states in customer-safe menu responses.
 - Keep customer menu UI optimized for mobile scanning and ordering.
 
 ### Acceptance Criteria
 
 - Vendor users can create, update, disable, and reorder categories and items.
 - Customers can view the correct menu after scanning a valid QR code.
-- Unavailable categories, items, variants, and add-ons are not orderable.
+- Unavailable categories, items, variants, and add-ons are hidden or clearly disabled in customer-safe menu responses.
 - Customer-facing menu data does not expose vendor-only fields.
 - Menu APIs keep data scoped to the current vendor tenant.
 
@@ -191,7 +244,7 @@ Allow vendor users to maintain menus that customers can browse from a QR code.
 - Branch-specific menus should not duplicate vendor-wide data unless necessary.
 - Menu data should be read-efficient because customer QR access depends on it.
 
-## Phase 4: QR Customer Ordering MVP
+## Phase 5: QR Customer Ordering MVP
 
 ### Goal
 
@@ -204,7 +257,7 @@ Let customers place table-linked orders from a QR code with manual/cash payment 
 - Item customization using variants and add-ons.
 - Order submission linked to vendor, branch, table, and QR code.
 - Order totals based on menu pricing at submission time.
-- Manual/cash payment status such as unpaid, paid, refunded, or voided if needed.
+- Manual/cash payment status using explicit MVP states: `unpaid`, `paid`, and `voided`.
 - Customer order confirmation view.
 
 ### Out of Scope
@@ -243,8 +296,9 @@ Let customers place table-linked orders from a QR code with manual/cash payment 
 - Server-side validation must be authoritative for menu availability and pricing.
 - Customer sessions should avoid requiring accounts unless later requirements demand it.
 - Manual payment status should not be mixed with kitchen/order fulfillment status.
+- Refund handling is deferred until refund rules or online payments are designed.
 
-## Phase 5: Vendor Order Operations
+## Phase 6: Vendor Order Operations
 
 ### Goal
 
@@ -255,6 +309,7 @@ Give vendor staff a reliable workflow for receiving, preparing, serving, and clo
 - Vendor order list.
 - Order detail view.
 - Order status updates.
+- Order item status updates for dish-level kitchen/service progress.
 - Manual payment status updates.
 - Basic filtering by status, branch, and table.
 - Clear customer notes and item customization display.
@@ -269,7 +324,8 @@ Give vendor staff a reliable workflow for receiving, preparing, serving, and clo
 
 ### Backend Work
 
-- Add order status transition rules.
+- Add order fulfillment status transition rules for `NEW`, `ACCEPTED`, `PREPARING`, `COMPLETED`, and `CANCELLED`.
+- Add order item status transition rules for `PREPARING`, `READY`, `SERVED`, and `CANCELLED`.
 - Add vendor-scoped order read APIs.
 - Add APIs for updating fulfillment status and manual payment status.
 - Keep order status history if needed for auditability.
@@ -278,7 +334,8 @@ Give vendor staff a reliable workflow for receiving, preparing, serving, and clo
 ### Frontend Work
 
 - Build vendor order list and detail screens.
-- Show new, in-progress, ready, served/completed, and cancelled states.
+- Show order-level `NEW`, `ACCEPTED`, `PREPARING`, `COMPLETED`, and `CANCELLED` states.
+- Show item-level `PREPARING`, `READY`, `SERVED`, and `CANCELLED` states.
 - Provide clear status action controls for staff.
 - Make item variants, add-ons, and customer notes easy to scan during service.
 
@@ -286,17 +343,21 @@ Give vendor staff a reliable workflow for receiving, preparing, serving, and clo
 
 - Vendor staff can see incoming orders for their vendor.
 - Vendor staff can update valid order statuses.
+- Vendor staff can update valid order item statuses independently when individual dishes progress or are cancelled.
 - Invalid status transitions are rejected.
 - Manual payment status can be updated without changing fulfillment status.
+- If all items are cancelled, the order becomes `CANCELLED`.
+- If at least one item is served and all remaining items are served or cancelled, the order can become `COMPLETED`.
 - Order screens remain usable during active service periods.
 
 ### Key Risks or Decisions
 
+- Order-level and item-level `CANCELLED` states have different meanings and should stay clear in API and UI naming.
 - Status transitions should be simple enough for staff to use under pressure.
 - Real-time updates are valuable but should not block MVP if polling is acceptable.
 - Auditability becomes more important once payment and refunds are introduced.
 
-## Phase 6: Admin & Reporting
+## Phase 7: Admin & Reporting
 
 ### Goal
 
@@ -347,7 +408,7 @@ Support platform operations and give vendors basic visibility into order and sal
 - Cross-tenant reporting must remain platform-admin only.
 - Summary data may need optimization after real order volume is known.
 
-## Phase 7: Online Payments & Hardening
+## Phase 8: Online Payments & Hardening
 
 ### Goal
 
@@ -409,7 +470,6 @@ Add online payment support and production readiness after the manual payment ord
 
 ## Open Decisions
 
-- Authentication provider and session strategy.
 - Exact vendor staff role matrix.
 - Whether branch-specific menus are overrides or independent menus.
 - Whether QR codes should expire automatically or only be manually rotated.
